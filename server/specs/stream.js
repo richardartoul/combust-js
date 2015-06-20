@@ -46,7 +46,9 @@ describe("server tests", function() {
 	var socket;
 	before(function(done) {
 		socket = io.connect(serverAddress);
-		done();
+		db.connect(function(conn) {
+			r.db('test').table('test').insert({path: null, _id: '/', msg:"this is the root node of the db"}).run(conn, done);
+		});// done();
 	})
 
 	after(function(done) {
@@ -118,6 +120,7 @@ describe("server tests", function() {
 			});
 			socket.emit('push', {path:'/', data: utils.testObj});
 			socket.once("pushSuccess", function(data) {
+				console.log("attempting to get: ", '/' + data.key + '/')
 				socket.emit('getUrl', {url: '/' + data.key + '/'});
 			});
 		});
