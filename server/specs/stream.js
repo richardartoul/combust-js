@@ -78,11 +78,11 @@ describe("server tests", function() {
 
 	//passes sometimes
 	describe('Sockets', function() {
-		// after(function(done) {
-		// 	db.connect(function(conn) {
-		// 		r.db(utils.dbName).table(utils.tableName).delete().run(conn, done);
-		// 	});
-		// });
+		after(function(done) {
+			db.connect(function(conn) {
+				r.db(utils.dbName).table(utils.tableName).delete().run(conn, done);
+			});
+		});
 
 		//fails sometimes
 		// it('should successfully establish a socket connection', function(done) {
@@ -94,11 +94,11 @@ describe("server tests", function() {
 	});
 
 	describe('Stream', function() {
-		// after(function(done) {
-		// 	db.connect(function(conn) {
-		// 		r.db(utils.dbName).table(utils.tableName).delete().run(conn, done);
-		// 	});
-		// })
+		after(function(done) {
+			db.connect(function(conn) {
+				r.db(utils.dbName).table(utils.tableName).delete().run(conn, done);
+			});
+		})
 		//delete inserted item
 		// after(function(done) {
 
