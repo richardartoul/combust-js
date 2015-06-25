@@ -244,6 +244,7 @@ describe("server tests", function() {
 			});
 		})
 
+		//TODO: implement this test
 		describe('authentication', function() {
 			it("should authenticate websocket connections with a valid token", function(done) {
 				done();
@@ -252,6 +253,7 @@ describe("server tests", function() {
 
 		describe('api', function() {
 
+			//should be updated to check if pushed item is actually in db
 			it('should push into the database', function(done) {
 				socket.emit('push', {path:'/messages/', data: utils.dummyObj});
 				socket.once("/messages/-pushSuccess", function(data) {
@@ -314,6 +316,13 @@ describe("server tests", function() {
 					});
 					socket.emit('set', {path:'/users/', data: {testProperty: true, testSomething:{testProp: 'hallo'}}})
 				});	
+			});
+
+			describe('evalJs', function() {
+				it('should evaluate js stored in the db', function(done) {
+					socket.emit("evalTest", {path:'/root/authtest/'});
+					done();
+				});
 			});
 		});
 	});
