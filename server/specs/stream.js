@@ -200,7 +200,7 @@ describe("server tests", function() {
 					var path = '/' + data.key + '/';
 					socket.emit('getUrl', {url: path});
 					socket.once(path + '-getSuccess', function(data) {
-							data.should.eql(utils.testObj);
+							data.data.should.eql(utils.testObj);
 							done();
 					});
 				});
@@ -221,7 +221,7 @@ describe("server tests", function() {
 			it('should set to paths in the database', function(done) {
 				socket.once('/messages/-setSuccess', function() {
 					socket.once('/messages/-getSuccess', function(data) {
-						data.should.eql({testProperty: true, testSomething:{testProp: 'hello'}});
+						data.data.should.eql({testProperty: true, testSomething:{testProp: 'hello'}});
 						done();
 					});
 					socket.emit('getUrl', {url: '/messages/'});
@@ -232,7 +232,7 @@ describe("server tests", function() {
 			it('should delete children of the path that is being set and set path to passed data', function(done) {
 				socket.once('/messages/-setSuccess', function() {
 					socket.once('/messages/-getSuccess', function(data) {
-						data.should.eql({testProperty: false});
+						data.data.should.eql({testProperty: false});
 						done();
 					});
 					socket.emit('getUrl', {url: '/messages/'});
