@@ -10,8 +10,6 @@ var configTest = require('./configTest');
 var utils = configTest.utils;
 var serverAddress = configTest.serverAddress;
 
-
-
 describe('delete', function() {
   var socket;
   var agent;
@@ -25,24 +23,63 @@ describe('delete', function() {
     });
   });
 
+  beforeEach(function(done) {
+    var rows = parseToRows({msg1: {from:'mom'}, msg2: {from: 'dad'}, room: 'main'}, '/user5/', 'messages');
+    db.connect(function(conn) {
+      r.db(config.dbName).table(config.tableName).insert({path: '/', _id: 'user5'}).run(conn, function(err, results) {
+        if (err) throw err;
+        r.db(config.dbName).table(config.tableName).insert(rows).run(conn, function(err, results) {
+          if (err) throw err;
+          done();
+        })
+      });
+    });
+  });
+
   after(function(done) {
     configTest.resetDb(function() {
       done();
     });
   });
 
-  it('should hear for a delete event and then remove a path from the database', function(done) {
-    socket.once('/messages/-setSuccess', function() {
-      socket.emit('delete', {path: '/messages/', data: {msg2: {from: 'joe'}}});
+  it('should delete static properties', function(done) {
+    socket.once('/user5/room/-deleteSuccess', function() {
+      db.connect(function(conn) {
+        r.db(config.dbName).table(config.tableName).filter({path: '/', _id: 'user5'}).run(conn, function(err, cursor) {
+          if (err) throw err;
+          cursor.toArray(function(err, array) {
+            if (err) throw err;
+            console.log('In static properties test, root node where static properties used to be looks like: ', array);
+            array[0].room.should.not.exist;
+          });
+        });
+      });
     });
-    socket.once('/messages/-deleteSuccess', function() {
-      socket.emit('getUrl', {url: '/messages/'});
-    })
-    socket.once('/messages/-getSuccess', function(response) {
-      response.data.should.eql({msg1: {from: 'alex'}, room: 'main'});
-      done();
-    })
-    socket.emit('set', {path: '/messages/', data: {msg1: {from: 'alex'}, msg2: {from: 'joe'}, room: 'main'}});
+    socket.emit('delete', {path: '/user5/room/'});
   });
 
+  it('should delete nested objects', function(done) {
+    socket.once('/user5/messages/-deleteSuccess', function() {
+      db.connect(function(conn) {
+        //check if root node was deleted
+        r.db(config.dbName).table(config.tableName).filter({path: '/user5/', _id: 'messages'}).run(conn, function(err, cursor) {
+          if (err) throw err;
+          cursor.toArray(function(err, array) {
+            if (err) throw err;
+            console.log('In nested objects test, filter for root node returned: ', array);
+            array[0].length.should.equal(0);
+            //check if children were deleted
+            r.db(config.dbName).table(config.tableName).filter(r.row('path').match('/user5/messages/*')).run(conn, function(err, cursor) {
+              if (err) throw err;
+              cursor.toArray(function(err, array) {
+                console.log('In nested objects test, filter for children returned: ', array);
+                array.length.should.eql(0);
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+  socket.emit('delete', {path: '/user5/messages/'});
 });
