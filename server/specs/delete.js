@@ -10,7 +10,7 @@ var configTest = require('./configTest');
 var utils = configTest.utils;
 var serverAddress = configTest.serverAddress;
 
-describe('delete', function() {
+xdescribe('delete', function() {
   var socket;
   var agent;
   before(function(done) {
@@ -26,9 +26,9 @@ describe('delete', function() {
   beforeEach(function(done) {
     var rows = parseToRows({msg1: {from:'mom'}, msg2: {from: 'dad'}, room: 'main'}, '/user5/', 'messages');
     db.connect(function(conn) {
-      r.db(config.dbName).table(config.tableName).insert({path: '/', _id: 'user5'}).run(conn, function(err, results) {
+      r.db(utils.dbName).table(utils.tableName).insert({path: '/', _id: 'user5'}).run(conn, function(err, results) {
         if (err) throw err;
-        r.db(config.dbName).table(config.tableName).insert(rows).run(conn, function(err, results) {
+        r.db(utils.dbName).table(utils.tableName).insert(rows).run(conn, function(err, results) {
           if (err) throw err;
           done();
         })
@@ -45,12 +45,13 @@ describe('delete', function() {
   it('should delete static properties', function(done) {
     socket.once('/user5/room/-deleteSuccess', function() {
       db.connect(function(conn) {
-        r.db(config.dbName).table(config.tableName).filter({path: '/', _id: 'user5'}).run(conn, function(err, cursor) {
+        r.db(utils.dbName).table(utils.tableName).filter({path: '/', _id: 'user5'}).run(conn, function(err, cursor) {
           if (err) throw err;
           cursor.toArray(function(err, array) {
             if (err) throw err;
             console.log('In static properties test, root node where static properties used to be looks like: ', array);
             array[0].room.should.not.exist;
+            done();
           });
         });
       });
@@ -62,24 +63,25 @@ describe('delete', function() {
     socket.once('/user5/messages/-deleteSuccess', function() {
       db.connect(function(conn) {
         //check if root node was deleted
-        r.db(config.dbName).table(config.tableName).filter({path: '/user5/', _id: 'messages'}).run(conn, function(err, cursor) {
+        r.db(utils.dbName).table(utils.tableName).filter({path: '/user5/', _id: 'messages'}).run(conn, function(err, cursor) {
           if (err) throw err;
           cursor.toArray(function(err, array) {
             if (err) throw err;
             console.log('In nested objects test, filter for root node returned: ', array);
             array[0].length.should.equal(0);
             //check if children were deleted
-            r.db(config.dbName).table(config.tableName).filter(r.row('path').match('/user5/messages/*')).run(conn, function(err, cursor) {
+            r.db(utils.dbName).table(utils.tableName).filter(r.row('path').match('/user5/messages/*')).run(conn, function(err, cursor) {
               if (err) throw err;
               cursor.toArray(function(err, array) {
                 console.log('In nested objects test, filter for children returned: ', array);
                 array.length.should.eql(0);
+                done();
               });
             });
           });
         });
       });
     });
+    socket.emit('delete', {path: '/user5/messages/'});
   });
-  socket.emit('delete', {path: '/user5/messages/'});
 });
