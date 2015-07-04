@@ -41,13 +41,13 @@ exports.setup = function(server) {
 		socket.emit('connectSuccess', "Socket connection established");
 
 		//setup all the individual socket listeners
-		subscribeUrl.setup(socket);
-		getUrl.setup(socket);
-		getUrlChildren.setup(socket);
+		subscribeUrl.setup(socket, io);
+		getUrl.setup(socket, io);
+		getUrlChildren.setup(socket, io);
 		push.setup(socket, io);	
-		set.setup(socket);
+		set.setup(socket, io);
 		update.setup(socket, io);
-		evaljs.setup(socket);	
+		evaljs.setup(socket, io);	
 		deleteUrl.setup(socket, io);	
 	});
 
